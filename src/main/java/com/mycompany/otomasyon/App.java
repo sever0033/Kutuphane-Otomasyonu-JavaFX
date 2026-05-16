@@ -14,6 +14,20 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
+ DatabaseHelper.createTables();
+ // TEST: Veritabanına kitap eklemeyi deniyoruz
+        KitapDAO kitapDao = new KitapDAO();
+        Kitap yeniKitap = new Kitap("Nutuk", "Mustafa Kemal Atatürk", 600, "Mevcut");
+        
+        if(kitapDao.kitapEkle(yeniKitap)) {
+            System.out.println(">> BAŞARIYLA KİTAP EKLENDİ <<");
+        }
+        
+        // TEST: Eklenen kitapları veritabanından çekip ekrana yazdırıyoruz
+        System.out.println("--- Kütüphanedeki Kitaplar ---");
+        for (Kitap k : kitapDao.tumKitaplariGetir()) {
+            System.out.println("ID: " + k.getId() + " | Kitap: " + k.getKitapAdi() + " | Yazar: " + k.getYazar());
+        }
         var javaVersion = SystemInfo.javaVersion();
         var javafxVersion = SystemInfo.javafxVersion();
 
