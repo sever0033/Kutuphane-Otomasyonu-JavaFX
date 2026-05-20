@@ -55,4 +55,22 @@ public class KitapDAO {
         }
         return kitapListesi;
     }
+    // Veritabanından, arayüzden gönderilecek olan ID'ye göre kitap silen metot
+    public boolean kitapSil(int id) {
+        String sql = "DELETE FROM Kitaplar WHERE id = ?";
+        
+        try (Connection conn = DatabaseHelper.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            // Soru işaretinin yerine silinecek kitabın ID numarasını koyuyoruz
+            pstmt.setInt(1, id);
+            
+            int etkilenenSatir = pstmt.executeUpdate();
+            return etkilenenSatir > 0; // Satır başarıyla silindiyse true döner
+            
+        } catch (SQLException e) {
+            System.out.println("Kitap silinirken hata oluştu: " + e.getMessage());
+            return false;
+        }
+    }
 }
