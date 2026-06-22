@@ -34,7 +34,7 @@ public class KitapDAO {
     // 2. METOT: Veritabanındaki Tüm Kitapları Listeleme (Select)
     public List<Kitap> tumKitaplariGetir() {
         List<Kitap> kitapListesi = new ArrayList<>();
-        String sql = "SELECT * FROM Kitaplar";
+        String sql = "SELECT * FROM Kitaplar where status=1";
         
         try (Connection conn = DatabaseHelper.connect();
              Statement stmt = conn.createStatement();
