@@ -64,15 +64,15 @@ public class App extends Application {
             String kAdi = userTextField.getText();
             String sifre = pwBox.getText();
 
-            if (kullaniciDAO.girisYap(kAdi, sifre)) {
-                hataLabel.setStyle("-fx-text-fill: green;");
-                hataLabel.setText("Giriş Başarılı! Yönlendiriliyorsunuz...");
-                
-                // Başarılı girişten sonra Ana Yönetim Paneline geçiş yapacak
-                // Bir sonraki aşamada buraya Ana Ekranı çağıracağız
-                System.out.println("Sisteme giriş yapıldı: " + kAdi);
-                
-            } else {
+           // App.java içindeki yeni güncel yer:
+if (kullaniciDAO.girisYap(kAdi, sifre)) {
+    hataLabel.setStyle("-fx-text-fill: green;");
+    hataLabel.setText("Giriş Başarılı! Yönlendiriliyorsunuz...");
+    
+    // Yeni eklenen yönlendirme kodu:
+    MainFrame anaEkran = new MainFrame();
+    anaEkran.showMenu(primaryStage); // Giriş ekranını kapatıp ana ekranı açar
+} else {
                 hataLabel.setStyle("-fx-text-fill: red;");
                 hataLabel.setText("Hatalı Kullanıcı Adı veya Şifre!");
             }
