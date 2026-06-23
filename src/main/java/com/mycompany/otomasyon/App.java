@@ -1,4 +1,3 @@
-
 package com.mycompany.otomasyon;
 
 import javafx.application.Application;
@@ -7,7 +6,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
@@ -18,16 +16,15 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        // İlk açılışta veritabanı tablolarını kontrol et ve oluştur
+        // Veritabanı tablolarını sıfırla ve oluştur
         DatabaseHelper.createTables();
         
-        // Test amaçlı varsayılan bir admin kullanıcısı ekleyelim (Eğer daha önce eklenmediyse)
+        // Varsayılan admin kullanıcısını ekle
         Kullanici defaultAdmin = new Kullanici("admin", "1234", "Çiçek Sever", "05551112233", "cicek@tarsus.edu.tr");
-        kullaniciDAO.kullaniciEkle(defaultAdmin); // UNIQUE kısıtlaması sayesinde tekrar tekrar eklemez, hata vermez
+        kullaniciDAO.kullaniciEkle(defaultAdmin);
 
         primaryStage.setTitle("Kütüphane Otomasyonu - Giriş");
 
-        // --- GİRİŞ EKRANI UI TASARIMI ---
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
@@ -64,15 +61,14 @@ public class App extends Application {
             String kAdi = userTextField.getText();
             String sifre = pwBox.getText();
 
-           // App.java içindeki yeni güncel yer:
-if (kullaniciDAO.girisYap(kAdi, sifre)) {
-    hataLabel.setStyle("-fx-text-fill: green;");
-    hataLabel.setText("Giriş Başarılı! Yönlendiriliyorsunuz...");
-    
-    // Yeni eklenen yönlendirme kodu:
-    MainFrame anaEkran = new MainFrame();
-    anaEkran.showMenu(primaryStage); // Giriş ekranını kapatıp ana ekranı açar
-} else {
+            if (kullaniciDAO.girisYap(kAdi, sifre)) {
+                System.out.println("Sisteme giriş yapıldı: " + kAdi);
+                
+                // KESİN ÇÖZÜM: Pencereyi kapatmıyoruz, sadece içeriğini MainFrame ile değiştiriyoruz
+                MainFrame anaEkran = new MainFrame();
+                anaEkran.showMenu(primaryStage);
+                
+            } else {
                 hataLabel.setStyle("-fx-text-fill: red;");
                 hataLabel.setText("Hatalı Kullanıcı Adı veya Şifre!");
             }
