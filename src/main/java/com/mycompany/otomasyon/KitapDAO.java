@@ -12,29 +12,32 @@ public class KitapDAO {
 
     // 1. METOT: Veritabanına Yeni Kitap Ekleme (Insert)
     public boolean kitapEkle(Kitap kitap) {
-        String sql = "INSERT INTO Kitaplar(kitapAdi, yazar, sayfaSayisi, durum) VALUES(?,?,?,?)";
+        String sql = "INSERT INTO Kitaplar(yazarId, yayineviId, kitapAdi, baski, adet, barkod, durum) VALUES(?,?,?,?,?,?,?)";
         
         try (Connection conn = DatabaseHelper.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            pstmt.setString(1, kitap.getKitapAdi());
-            pstmt.setString(2, kitap.getYazar());
-            pstmt.setInt(3, kitap.getSayfaSayisi());
-            pstmt.setString(4, kitap.getDurum());
+            pstmt.setInt(1, kitap.getYazarId());
+            pstmt.setInt(2, kitap.getYayineviId());
+            pstmt.setString(3, kitap.getKitapAdi());
+            pstmt.setString(4, kitap.getBaski());
+            pstmt.setInt(5, kitap.getAdet());
+            pstmt.setString(6, kitap.getBarkod());
+            pstmt.setString(7, kitap.getDurum());
             
             pstmt.executeUpdate();
-            return true; // Ekleme başarılıysa true döner
+            return true;
             
         } catch (SQLException e) {
             System.out.println("Kitap eklenirken hata oluştu: " + e.getMessage());
-            return false; // Hata varsa false döner
+            return false;
         }
     }
 
     // 2. METOT: Veritabanındaki Tüm Kitapları Listeleme (Select)
     public List<Kitap> tumKitaplariGetir() {
         List<Kitap> kitapListesi = new ArrayList<>();
-        String sql = "SELECT * FROM Kitaplar where status=1";
+        String sql = "SELECT * FROM Kitaplar";
         
         try (Connection conn = DatabaseHelper.connect();
              Statement stmt = conn.createStatement();
@@ -43,9 +46,12 @@ public class KitapDAO {
             while (rs.next()) {
                 Kitap kitap = new Kitap(
                     rs.getInt("id"),
+                    rs.getInt("yazarId"),
+                    rs.getInt("yayineviId"),
                     rs.getString("kitapAdi"),
-                    rs.getString("yazar"),
-                    rs.getInt("sayfaSayisi"),
+                    rs.getString("baski"),
+                    rs.getInt("adet"),
+                    rs.getString("barkod"),
                     rs.getString("durum")
                 );
                 kitapListesi.add(kitap);
@@ -55,21 +61,45 @@ public class KitapDAO {
         }
         return kitapListesi;
     }
-    // Veritabanından, arayüzden gönderilecek olan ID'ye göre kitap silen metot
+
+    // 3. METOT: Veritabanından Kitap Silme (Delete)
     public boolean kitapSil(int id) {
         String sql = "DELETE FROM Kitaplar WHERE id = ?";
         
         try (Connection conn = DatabaseHelper.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            // Soru işaretinin yerine silinecek kitabın ID numarasını koyuyoruz
             pstmt.setInt(1, id);
-            
             int etkilenenSatir = pstmt.executeUpdate();
-            return etkilenenSatir > 0; // Satır başarıyla silindiyse true döner
+            return etkilenenSatir > 0;
             
         } catch (SQLException e) {
             System.out.println("Kitap silinirken hata oluştu: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // 4. METOT: Kitap Güncelleme (Update)
+    public boolean kitapGuncelle(Kitap kitap) {
+        String sql = "UPDATE Kitaplar SET yazarId = ?, yayineviId = ?, kitapAdi = ?, baski = ?, adet = ?, barkod = ?, durum = ? WHERE id = ?";
+        
+        try (Connection conn = DatabaseHelper.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, kitap.getYazarId());
+            pstmt.setInt(2, kitap.getYayineviId());
+            pstmt.setString(3, kitap.getKitapAdi());
+            pstmt.setString(4, kitap.getBaski());
+            pstmt.setInt(5, kitap.getAdet());
+            pstmt.setString(6, kitap.getBarkod());
+            pstmt.setString(7, kitap.getDurum());
+            pstmt.setInt(8, kitap.getId());
+            
+            int etkilenenSatir = pstmt.executeUpdate();
+            return etkilenenSatir > 0;
+            
+        } catch (SQLException e) {
+            System.out.println("Kitap güncellenirken hata oluştu: " + e.getMessage());
             return false;
         }
     }
