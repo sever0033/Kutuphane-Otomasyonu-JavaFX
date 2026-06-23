@@ -1,20 +1,20 @@
 package com.mycompany.otomasyon;
 
-public class Yayınevi {
+public class Yayinevi {
     private int id;
     private String yayineviAdi;
     private String adres;
     private String webSitesi;
 
     // Yeni eklerken ID otomatik oluştuğu için ID'siz constructor
-    public Yayınevi(String yayineviAdi, String adres, String webSitesi) {
+    public Yayinevi(String yayineviAdi, String adres, String webSitesi) {
         this.yayineviAdi = yayineviAdi;
         this.adres = adres;
         this.webSitesi = webSitesi;
     }
 
     // Veritabanından çekerken kullanacağımız ID'li constructor
-    public Yayınevi(int id, String yayineviAdi, String adres, String webSitesi) {
+    public Yayinevi(int id, String yayineviAdi, String adres, String webSitesi) {
         this.id = id;
         this.yayineviAdi = yayineviAdi;
         this.adres = adres;
