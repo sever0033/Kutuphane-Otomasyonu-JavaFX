@@ -1,160 +1,89 @@
+
 package com.mycompany.otomasyon;
 
 import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 public class App extends Application {
 
+    private KullaniciDAO kullaniciDAO = new KullaniciDAO();
+
     @Override
-    public void start(Stage stage) {
-        stage.setTitle("Kütüphane Otomasyon Sistemi");
-
-        // 1. Sol Taraf: Giriş Formu Elemanları
-        Label lblAd = new Label("Kitap Adı:");
-        TextField txtAd = new TextField();
+    public void start(Stage primaryStage) {
+        // İlk açılışta veritabanı tablolarını kontrol et ve oluştur
+        DatabaseHelper.createTables();
         
-        Label lblYazar = new Label("Yazar:");
-        TextField txtYazar = new TextField();
-        
-        Label lblSayfa = new Label("Sayfa Sayısı:");
-        TextField txtSayfa = new TextField();
-        
-        Label lblDurum = new Label("Durum:");
-        ComboBox<String> comboDurum = new ComboBox<>();
-        comboDurum.getItems().addAll("Mevcut", "Ödünç Verildi");
-        comboDurum.setValue("Mevcut");
+        // Test amaçlı varsayılan bir admin kullanıcısı ekleyelim (Eğer daha önce eklenmediyse)
+        Kullanici defaultAdmin = new Kullanici("admin", "1234", "Çiçek Sever", "05551112233", "cicek@tarsus.edu.tr");
+        kullaniciDAO.kullaniciEkle(defaultAdmin); // UNIQUE kısıtlaması sayesinde tekrar tekrar eklemez, hata vermez
 
-        // Butonlar Tanımlanıyor
-        Button btnEkle = new Button("Kitap Ekle");
-        Button btnSil = new Button("Seçileni Sil");
+        primaryStage.setTitle("Kütüphane Otomasyonu - Giriş");
 
-        // Sol tarafı dikey olarak hizalayan form kutusu
-        VBox formKutusu = new VBox(10); 
-        formKutusu.setStyle("-fx-padding: 20; -fx-background-color: #f5f6fa;");
-        formKutusu.getChildren().addAll(lblAd, txtAd, lblYazar, txtYazar, lblSayfa, txtSayfa, lblDurum, comboDurum, btnEkle, btnSil);
+        // --- GİRİŞ EKRANI UI TASARIMI ---
+        GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(25, 25, 25, 25));
 
-        // 2. Sağ Taraf: Kitap Listesi Tablosu (TableView)
-        TableView<Kitap> tablo = new TableView<>();
-        
-        TableColumn<Kitap, Integer> colId = new TableColumn<>("ID");
-        TableColumn<Kitap, String> colAd = new TableColumn<>("Kitap Adı");
-        TableColumn<Kitap, String> colYazar = new TableColumn<>("Yazar");
-        TableColumn<Kitap, Integer> colSayfa = new TableColumn<>("Sayfa");
-        TableColumn<Kitap, String> colDurum = new TableColumn<>("Durum");
+        Label baslikLabel = new Label("Sistem Girişi");
+        baslikLabel.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
+        grid.add(baslikLabel, 0, 0, 2, 1);
 
-        tablo.getColumns().addAll(colId, colAd, colYazar, colSayfa, colDurum);
-        
-        // Kolonların Kitap sınıfındaki hangi değişkenle eşleşeceğini söylüyoruz
-        colId.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("id"));
-        colAd.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("kitapAdi"));
-        colYazar.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("yazar"));
-        colSayfa.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("sayfaSayisi"));
-        colDurum.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("durum"));
+        Label userLabel = new Label("Kullanıcı Adı:");
+        grid.add(userLabel, 0, 1);
 
-        // Sağ tarafı genişleten kutu
-        VBox tabloKutusu = new VBox(tablo);
-        HBox.setHgrow(tabloKutusu, Priority.ALWAYS);
+        TextField userTextField = new TextField();
+        userTextField.setPromptText("Kullanıcı adınızı giriniz");
+        grid.add(userTextField, 1, 1);
 
-        // 3. Ana Düzen (Pencereleri yan yana birleştirme)
-        HBox anaDuzen = new HBox(formKutusu, tabloKutusu);
-        
-        Scene scene = new Scene(anaDuzen, 800, 500);
-        stage.setScene(scene);
-        stage.show();
+        Label pwLabel = new Label("Şifre:");
+        grid.add(pwLabel, 0, 2);
 
-        // --- ŞIK VE MODERN TASARIM DOKUNUŞLARI (CSS) ---
-        anaDuzen.setStyle("-fx-background-color: #f8f9fa; -fx-padding: 10;");
+        PasswordField pwBox = new PasswordField();
+        pwBox.setPromptText("Şifrenizi giriniz");
+        grid.add(pwBox, 1, 2);
 
-        formKutusu.setStyle(
-            "-fx-background-color: #ffffff; " +
-            "-fx-padding: 25; " +
-            "-fx-spacing: 12; " +
-            "-fx-border-radius: 10; " +
-            "-fx-background-radius: 10; " +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 10, 0, 0, 4);"
-        );
+        Button loginBtn = new Button("Giriş Yap");
+        grid.add(loginBtn, 1, 4);
 
-        String labelStili = "-fx-font-family: 'Segoe UI'; -fx-font-weight: bold; -fx-text-fill: #4e5d6c; -fx-font-size: 13px;";
-        lblAd.setStyle(labelStili);
-        lblYazar.setStyle(labelStili);
-        lblSayfa.setStyle(labelStili);
-        lblDurum.setStyle(labelStili);
+        Label hataLabel = new Label();
+        hataLabel.setStyle("-fx-text-fill: red;");
+        grid.add(hataLabel, 1, 5);
 
-        String inputStili = "-fx-background-color: #f1f3f5; -fx-border-color: #ced4da; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 8; -fx-font-size: 13px;";
-        txtAd.setStyle(inputStili);
-        txtYazar.setStyle(inputStili);
-        txtSayfa.setStyle(inputStili);
-        comboDurum.setStyle(inputStili);
-        comboDurum.setMaxWidth(Double.MAX_VALUE);
+        // --- GİRİŞ BUTONU AKSİYONU ---
+        loginBtn.setOnAction(e -> {
+            String kAdi = userTextField.getText();
+            String sifre = pwBox.getText();
 
-        // Yeşil Buton Stili
-        btnEkle.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-family: 'Segoe UI'; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 20; -fx-background-radius: 6; -fx-cursor: hand;");
-        btnEkle.setMaxWidth(Double.MAX_VALUE);
-
-        // Kırmızı Buton Stili
-        btnSil.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-family: 'Segoe UI'; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 20; -fx-background-radius: 6; -fx-cursor: hand;");
-        btnSil.setMaxWidth(Double.MAX_VALUE);
-
-        // Hover Efektleri (Fare üzerine gelince renk değişimi)
-        btnSil.setOnMouseEntered(e -> btnSil.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-font-family: 'Segoe UI'; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 20; -fx-background-radius: 6; -fx-cursor: hand;"));
-        btnSil.setOnMouseExited(e -> btnSil.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-family: 'Segoe UI'; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 20; -fx-background-radius: 6; -fx-cursor: hand;"));
-        btnEkle.setOnMouseEntered(e -> btnEkle.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-family: 'Segoe UI'; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 20; -fx-background-radius: 6; -fx-cursor: hand;"));
-        btnEkle.setOnMouseExited(e -> btnEkle.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-family: 'Segoe UI'; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 20; -fx-background-radius: 6; -fx-cursor: hand;"));
-
-        tablo.setStyle("-fx-background-color: transparent; -fx-font-family: 'Segoe UI'; -fx-font-size: 13px;");
-        colId.setStyle("-fx-alignment: CENTER;");
-        colSayfa.setStyle("-fx-alignment: CENTER;");
-        colDurum.setStyle("-fx-alignment: CENTER;");
-        tablo.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        
-        // İlk açılışta tabloyu veritabanından doldurur
-        tabloyuYenile(tablo);
-
-        // KİTAP EKLEME AKSİYONU
-        btnEkle.setOnAction(e -> {
-            String ad = txtAd.getText();
-            String yazar = txtYazar.getText();
-            int sayfa = Integer.parseInt(txtSayfa.getText());
-            String durum = comboDurum.getValue();
-
-            Kitap eklenecekKitap = new Kitap(ad, yazar, sayfa, durum);
-            KitapDAO kitapDao = new KitapDAO();
-
-            if (kitapDao.kitapEkle(eklenecekKitap)) {
-                System.out.println("Arayüzden yeni kitap eklendi!");
-                tabloyuYenile(tablo);
-                txtAd.clear();
-                txtYazar.clear();
-                txtSayfa.clear();
-            }
-        });
-
-        // KİTAP SİLME AKSİYONU
-        btnSil.setOnAction(e -> {
-            Kitap secilenKitap = tablo.getSelectionModel().getSelectedItem();
-            if (secilenKitap != null) {
-                KitapDAO kitapDao = new KitapDAO();
-                if (kitapDao.kitapSil(secilenKitap.getId())) {
-                    System.out.println("Kitap başarıyla silindi!");
-                    tabloyuYenile(tablo); 
-                }
+            if (kullaniciDAO.girisYap(kAdi, sifre)) {
+                hataLabel.setStyle("-fx-text-fill: green;");
+                hataLabel.setText("Giriş Başarılı! Yönlendiriliyorsunuz...");
+                
+                // Başarılı girişten sonra Ana Yönetim Paneline geçiş yapacak
+                // Bir sonraki aşamada buraya Ana Ekranı çağıracağız
+                System.out.println("Sisteme giriş yapıldı: " + kAdi);
+                
             } else {
-                System.out.println("Lütfen silmek için tablodan bir kitap seçin!");
+                hataLabel.setStyle("-fx-text-fill: red;");
+                hataLabel.setText("Hatalı Kullanıcı Adı veya Şifre!");
             }
         });
-    }
 
-    // Tabloyu tazeleyen ortak fonksiyon
-    private void tabloyuYenile(TableView<Kitap> tablo) {
-        KitapDAO kitapDao = new KitapDAO();
-        tablo.getItems().clear();
-        tablo.getItems().addAll(kitapDao.tumKitaplariGetir());
+        Scene scene = new Scene(grid, 400, 300);
+        primaryStage.setScene(scene);
+        primaryStage.show();
     }
 
     public static void main(String[] args) {
-        launch();
+        launch(args);
     }
 }

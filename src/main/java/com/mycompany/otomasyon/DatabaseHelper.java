@@ -19,7 +19,6 @@ public class DatabaseHelper {
     }
 
     public static void createTables() {
-        // 1. Yayınevleri Tablosu
         String sqlYayinevleri = "CREATE TABLE IF NOT EXISTS Yayinevleri ("
                 + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + " yayineviAdi TEXT NOT NULL,"
@@ -27,7 +26,6 @@ public class DatabaseHelper {
                 + " webSitesi TEXT"
                 + ");";  
 
-        // 2. Yazarlar Tablosu
         String sqlYazarlar = "CREATE TABLE IF NOT EXISTS Yazarlar ("
                 + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + " title TEXT,"
@@ -36,7 +34,6 @@ public class DatabaseHelper {
                 + " lastName TEXT NOT NULL"
                 + ");";
 
-        // 3. Kitaplar Tablosu (Yeni ilişkisel yapımız)
         String sqlKitaplar = "CREATE TABLE IF NOT EXISTS Kitaplar ("
                 + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + " yazarId INTEGER,"
@@ -50,7 +47,6 @@ public class DatabaseHelper {
                 + " FOREIGN KEY(yayineviId) REFERENCES Yayinevleri(id)"
                 + ");";
 
-        // 4. Kullanıcılar Tablosu (Giriş bilgileri için username/password alanları eklendi)
         String sqlKullanicilar = "CREATE TABLE IF NOT EXISTS Kullanicilar ("
                 + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + " username TEXT NOT NULL UNIQUE,"
@@ -60,7 +56,6 @@ public class DatabaseHelper {
                 + " eposta TEXT"
                 + ");";
 
-        // 5. Ödünç İşlemleri Tablosu
         String sqlOdunc = "CREATE TABLE IF NOT EXISTS OduncIslemleri ("
                 + " id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + " kitapId INTEGER,"
@@ -74,23 +69,25 @@ public class DatabaseHelper {
         try (Connection conn = connect();
              Statement stmt = conn.createStatement()) {
             
-            // SQLite üzerinde yabancı anahtar (FOREIGN KEY) kısıtlamalarını aktif ediyoruz
+            // SQLite üzerinde ilişkileri aktif ediyoruz
             stmt.execute("PRAGMA foreign_keys = ON;");
             
-            // Eski Kitaplar tablosu eski yapıda kaldıysa çakışmayı önlemek için sıfırlıyoruz
+            // Çakışma yaratabilecek eski tabloları tamamen uçuruyoruz
             stmt.execute("DROP TABLE IF EXISTS Kitaplar;");
+            stmt.execute("DROP TABLE IF EXISTS Kullanicilar;");
+            stmt.execute("DROP TABLE IF EXISTS OduncIslemleri;");
 
-            // Sırasıyla tüm tabloları veritabanında çalıştırıp oluşturuyoruz
+            // Yeni ve doğru kolonlara sahip tabloları sıfırdan kuruyoruz
             stmt.execute(sqlYayinevleri);
             stmt.execute(sqlYazarlar);
             stmt.execute(sqlKitaplar);
             stmt.execute(sqlKullanicilar);
             stmt.execute(sqlOdunc);
             
-            System.out.println(">> TABLOLAR BAŞARIYLA OLUŞTURULDU <<");
+            System.out.println(">> TABLOLAR BAŞARIYLA SIFIRLANDI VE OLUŞTURULDU <<");
             
         } catch (SQLException e) {
             System.out.println("Tablo oluşturma hatası: " + e.getMessage());
         }
     }
-}
+} 
