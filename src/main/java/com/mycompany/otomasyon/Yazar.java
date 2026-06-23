@@ -2,12 +2,15 @@ package com.mycompany.otomasyon;
 
 public class Yazar {
     private int id;
-    private String title; // Mr, Mrs, Dr, Prof vb.
+    private String title;
     private String firstName;
-    private String middleName; // Boş bırakılabilir
+    private String middleName;
     private String lastName;
 
-    // ID'siz constructor
+    // 1. Boş Constructor
+    public Yazar() {}
+
+    // 2. Parametreli Constructor (Yazar Ekleken Kullanılan - ID'siz)
     public Yazar(String title, String firstName, String middleName, String lastName) {
         this.title = title;
         this.firstName = firstName;
@@ -15,24 +18,13 @@ public class Yazar {
         this.lastName = lastName;
     }
 
-    // ID'li constructor
+    // 3. Parametreli Constructor (YazarDAO Veritabanından Çekerken Kullanılan - ID'li)
     public Yazar(int id, String title, String firstName, String middleName, String lastName) {
         this.id = id;
         this.title = title;
         this.firstName = firstName;
         this.middleName = middleName;
         this.lastName = lastName;
-    }
-
-    // Arayüzde veya ComboBox'ta yazar ismini düzgün göstermek için toString() metodu
-    @Override
-    public String toString() {
-        String tamAd = (title != null ? title + " " : "") + firstName;
-        if (middleName != null && !middleName.trim().isEmpty()) {
-            tamAd += " " + middleName;
-        }
-        tamAd += " " + lastName;
-        return tamAd;
     }
 
     // Getter ve Setter Metotları
@@ -50,4 +42,12 @@ public class Yazar {
 
     public String getLastName() { return lastName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
+
+    // JavaFX ComboBox İçi Temiz Gösterim Metodu
+    @Override
+    public String toString() {
+        String unvan = (title != null && !title.isEmpty()) ? title + " " : "";
+        String ikinciAd = (middleName != null && !middleName.isEmpty()) ? middleName + " " : "";
+        return unvan + firstName + " " + ikinciAd + lastName;
+    }
 }

@@ -6,14 +6,17 @@ public class Yayinevi {
     private String adres;
     private String webSitesi;
 
-    // Yeni eklerken ID otomatik oluştuğu için ID'siz constructor
+    // 1. Boş Constructor
+    public Yayinevi() {}
+
+    // 2. Parametreli Constructor (Yayınevi Ekleken Kullanılan - ID'siz)
     public Yayinevi(String yayineviAdi, String adres, String webSitesi) {
         this.yayineviAdi = yayineviAdi;
         this.adres = adres;
         this.webSitesi = webSitesi;
     }
 
-    // Veritabanından çekerken kullanacağımız ID'li constructor
+    // 3. Parametreli Constructor (YayineviDAO Veritabanından Çekerken Kullanılan - ID'li)
     public Yayinevi(int id, String yayineviAdi, String adres, String webSitesi) {
         this.id = id;
         this.yayineviAdi = yayineviAdi;
@@ -33,4 +36,10 @@ public class Yayinevi {
 
     public String getWebSitesi() { return webSitesi; }
     public void setWebSitesi(String webSitesi) { this.webSitesi = webSitesi; }
+
+    // JavaFX ComboBox İçi Temiz Gösterim Metodu
+    @Override
+    public String toString() {
+        return yayineviAdi;
+    }
 }

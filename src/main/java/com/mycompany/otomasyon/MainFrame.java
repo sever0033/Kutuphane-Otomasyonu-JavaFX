@@ -31,10 +31,139 @@ public class MainFrame {
         // --- 1. SEKME: KİTAP YÖNETİMİ ---
         Tab tabKitap = new Tab("Kitap Yönetimi");
         tabKitap.setClosable(false);
-        VBox vboxKitap = new VBox(10);
-        vboxKitap.setPadding(new Insets(20));
-        vboxKitap.getChildren().add(new Label("Kitap Ekleme, Listeleme ve Güncelleme Alanı"));
-        tabKitap.setContent(vboxKitap);
+
+        // Düzen ve Elemanlar (Form)
+        GridPane kitapForm = new GridPane();
+        kitapForm.setHgap(10); kitapForm.setVgap(10);
+        kitapForm.setPadding(new Insets(10));
+
+        kitapForm.add(new Label("Kitap Adı:"), 0, 0);
+        TextField txtKitapAdi = new TextField();
+        kitapForm.add(txtKitapAdi, 1, 0);
+
+        // Dinamik Yazar Seçim Kutusu (ComboBox)
+        kitapForm.add(new Label("Yazar Seçin:"), 0, 1);
+        ComboBox<Yazar> comboYazarlar = new ComboBox<>();
+        comboYazarlar.setPromptText("Yazar Seçiniz");
+        kitapForm.add(comboYazarlar, 1, 1);
+
+        // Dinamik Yayınevi Seçim Kutusu (ComboBox)
+        kitapForm.add(new Label("Yayınevi Seçin:"), 0, 2);
+        ComboBox<Yayinevi> comboYayinevleri = new ComboBox<>();
+        comboYayinevleri.setPromptText("Yayınevi Seçiniz");
+        kitapForm.add(comboYayinevleri, 1, 2);
+
+        kitapForm.add(new Label("Baskı/Yıl:"), 0, 3);
+        TextField txtBaski = new TextField();
+        kitapForm.add(txtBaski, 1, 3);
+
+        kitapForm.add(new Label("Adet:"), 0, 4);
+        TextField txtAdet = new TextField("1"); // Varsayılan değer 1
+        kitapForm.add(txtAdet, 1, 4);
+
+        kitapForm.add(new Label("Barkod (Unique):"), 0, 5);
+        TextField txtBarkod = new TextField();
+        kitapForm.add(txtBarkod, 1, 5);
+
+        Button btnKitapEkle = new Button("Kitap Ekle");
+        kitapForm.add(btnKitapEkle, 1, 6);
+
+        Label lblKitapDurum = new Label();
+        kitapForm.add(lblKitapDurum, 1, 7);
+
+        // Kitap Tablo Yapısı
+        TableView<Kitap> kitapTablo = new TableView<>();
+
+        TableColumn<Kitap, Integer> colKitapId = new TableColumn<>("ID");
+        colKitapId.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("id"));
+
+        TableColumn<Kitap, String> colKitapAdi = new TableColumn<>("Kitap Adı");
+        colKitapAdi.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("kitapAdi"));
+
+        TableColumn<Kitap, String> colKitapBaski = new TableColumn<>("Baskı");
+        colKitapBaski.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("baski"));
+
+        TableColumn<Kitap, Integer> colKitapAdet = new TableColumn<>("Adet");
+        colKitapAdet.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("adet"));
+
+        TableColumn<Kitap, String> colKitapBarkod = new TableColumn<>("Barkod");
+        colKitapBarkod.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("barkod"));
+
+        TableColumn<Kitap, String> colKitapDurum = new TableColumn<>("Durum");
+        colKitapDurum.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("durum"));
+
+        kitapTablo.getColumns().addAll(colKitapId, colKitapAdi, colKitapBaski, colKitapAdet, colKitapBarkod, colKitapDurum);
+
+        // DAO Bağlantıları
+        KitapDAO kitapDAO = new KitapDAO();
+        YazarDAO kYazarDAO = new YazarDAO();
+        YayineviDAO kYayineviDAO = new YayineviDAO();
+
+        // Veritabanındaki yazar ve yayınevlerini ComboBox'lara dolduruyoruz
+        comboYazarlar.getItems().addAll(kYazarDAO.tumYazarlariGetir());
+        comboYayinevleri.getItems().addAll(kYayineviDAO.tumYayinevleriniGetir());
+        
+        // Mevcut kitapları tabloya listele
+        kitapTablo.getItems().addAll(kitapDAO.tumKitaplariGetir());
+
+        // BUTON AKSİYONU: Kitap Ekleme
+        btnKitapEkle.setOnAction(e -> {
+            String kitapAdi = txtKitapAdi.getText();
+            Yazar secilenYazar = comboYazarlar.getValue();
+            Yayinevi secilenYayinevi = comboYayinevleri.getValue();
+            String baski = txtBaski.getText();
+            String barkod = txtBarkod.getText();
+            
+            int adet;
+            try {
+                adet = Integer.parseInt(txtAdet.getText());
+            } catch (NumberFormatException ex) {
+                lblKitapDurum.setStyle("-fx-text-fill: red;");
+                lblKitapDurum.setText("Adet alanı sayı olmalıdır!");
+                return;
+            }
+
+            if (kitapAdi.isEmpty() || secilenYazar == null || secilenYayinevi == null || barkod.isEmpty()) {
+                lblKitapDurum.setStyle("-fx-text-fill: red;");
+                lblKitapDurum.setText("Lütfen boş alanları doldurun ve seçim yapın!");
+                return;
+            }
+
+            // Kitap nesnesini ilişkisel ID'lerle oluşturuyoruz
+            Kitap yeniKitap = new Kitap(secilenYazar.getId(), secilenYayinevi.getId(), kitapAdi, baski, adet, barkod, "Mevcut");
+            
+            if (kitapDAO.kitapEkle(yeniKitap)) {
+                lblKitapDurum.setStyle("-fx-text-fill: green;");
+                lblKitapDurum.setText("Kitap başarıyla eklendi!");
+
+                // Formu temizle
+                txtKitapAdi.clear(); txtBaski.clear(); txtBarkod.clear(); txtAdet.setText("1");
+                comboYazarlar.setValue(null); comboYayinevleri.setValue(null);
+                
+                // Tabloyu güncelle
+                kitapTablo.getItems().clear();
+                kitapTablo.getItems().addAll(kitapDAO.tumKitaplariGetir());
+            } else {
+                lblKitapDurum.setStyle("-fx-text-fill: red;");
+                lblKitapDurum.setText("Hata: Barkod benzersiz olmalıdır!");
+            }
+        });
+
+        // Her Sekme Açıldığında ComboBox'ların Güncel Verileri Çekmesini Sağlıyoruz (Sihirli Dokunuş)
+        tabKitap.setOnSelectionChanged(event -> {
+            if (tabKitap.isSelected()) {
+                comboYazarlar.getItems().clear();
+                comboYayinevleri.getItems().clear();
+                comboYazarlar.getItems().addAll(kYazarDAO.tumYazarlariGetir());
+                comboYayinevleri.getItems().addAll(kYayineviDAO.tumYayinevleriniGetir());
+            }
+        });
+
+        // Düzen Yerleşimi (Sol form, Sağ tablo)
+        HBox kitapLayout = new HBox(20, kitapForm, kitapTablo);
+        HBox.setHgrow(kitapTablo, Priority.ALWAYS);
+        kitapLayout.setPadding(new Insets(15));
+        tabKitap.setContent(kitapLayout);
 
         // --- 2. SEKME: YAZAR YÖNETİMİ ---
         Tab tabYazar = new Tab("Yazar Yönetimi");
